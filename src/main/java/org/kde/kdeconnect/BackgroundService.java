@@ -19,7 +19,9 @@ import org.kde.kdeconnect.UserInterface.MainSettingsActivity;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -81,6 +83,18 @@ public class BackgroundService extends Service {
         return devices.get(id);
     }
 
+    public Device getDeviceByName(String name) {
+        Device theDevice = null;
+        for (String deviceId: devices.keySet()) {
+            Device device = devices.get(deviceId);
+            if (device.getName().equals(name)){
+                theDevice = device;
+                break;
+            }
+        }
+        return theDevice;
+    }
+
     private BaseLinkProvider.ConnectionReceiver deviceListener = new BaseLinkProvider.ConnectionReceiver() {
         @Override
         public void onConnectionReceived(final NetworkPackage identityPackage, final BaseLink link) {
@@ -125,6 +139,17 @@ public class BackgroundService extends Service {
 
     public HashMap<String, Device> getDevices() {
         return devices;
+    }
+
+    public List<String> getDeviceNames() {
+        List<String> deviceNames = new ArrayList<String>();
+        for (String deviceId: devices.keySet()){
+            Device d = devices.get(deviceId);
+            String name = d.getName();
+            deviceNames.add(name);
+        }
+        Collections.sort(deviceNames);
+        return deviceNames;
     }
 
     public void startDiscovery() {
@@ -254,9 +279,19 @@ public class BackgroundService extends Service {
         super.onDestroy();
     }
 
+    /**
+     * Custom local binder intended for widget configuration activities
+     */
+    public class BackgroundServiceBinder extends Binder {
+        public BackgroundService getService() {
+            return BackgroundService.this;
+        }
+    }
+
     @Override
     public IBinder onBind (Intent intent) {
-        return new Binder();
+        Log.i("BackgroundService", "onBind");
+        return new BackgroundServiceBinder();
     }
 
 

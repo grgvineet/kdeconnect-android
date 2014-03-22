@@ -63,5 +63,13 @@
     <string name="device_name">Device name</string>
     <string name="device_name_preference_summary">%s</string>
     <string name="invalid_device_name">Invalid device name</string>
-
+    <string name="mpris_info_no_mpris_plugin">The selected device does not have the multimedia control receiver plugin activated!</string>
+    <string name="mpris_info_no_mpris_player">The selected device does not actually run any media player! Please launch the desired media player then retry this configuration.</string>
+    <string name="mpris_info_no_player_selected">Please select a media player before continuing, or cancel this configuration.</string>
+    <string name="mpris_widget_info_format"><![CDATA[<b>%1$s</b> on device <b>%2$s</b><br><i>%3$s</i>]]></string>
+    <string name="mpris_done">Done</string>
+    <string name="mpris_cancel">Cancel</string>
+    <string name="mpris_refresh">Refresh</string>
+    <string name="mpris_info_no_paired_device">No paired device found!</string>
+    <string name="mpris_widget_info_waiting">Waiting for player notifications</string>
 </resources>

@@ -456,6 +456,10 @@ public class Device implements BaseLink.PackageReceiver {
             Log.e("onPackageReceived","Device not paired, ignoring package!");
 
         } else {
+            // FIXME: for some reason, plugin list is empty when no activity is shown on the screen
+            // Reload plugins if the plugin list is empty
+            if (plugins.isEmpty())
+                reloadPluginsFromSettings();
 
             for (Plugin plugin : plugins.values()) {
                 plugin.onPackageReceived(np);

@@ -84,4 +84,7 @@ public abstract class Plugin {
     public abstract Button getInterfaceButton(Activity activity);
 
 
+    public Device getDevice() {
+        return device;
+    }
 }

@@ -4,8 +4,8 @@
     android:versionCode="16"
     android:versionName="0.6.2">
 
-    <uses-sdk android:minSdkVersion="9"
-              android:targetSdkVersion="18" />
+    <uses-sdk android:minSdkVersion="18"
+              android:targetSdkVersion="19" />
 
     <supports-screens
         android:smallScreens="true"
@@ -32,13 +32,14 @@
         android:allowBackup="true"
         android:icon="@drawable/icon"
         android:label="KDE Connect"
-        android:debuggable="false"
         >
 
         <service
             android:enabled="true"
             android:name="org.kde.kdeconnect.BackgroundService">
         </service>
+
+        <service android:name="org.kde.kdeconnect.Plugins.MprisPlugin.MprisWidgetProvider$UpdateService" />
 
         <activity
             android:theme="@style/Theme.AppCompat"
@@ -112,6 +113,14 @@
             <intent-filter>
                 <action android:name="android.intent.action.BATTERY_CHANGED" />
             </intent-filter>-->
+        </receiver>
+
+        <receiver android:name="org.kde.kdeconnect.Plugins.MprisPlugin.MprisWidgetProvider" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/mpris_widget" />
         </receiver>
 
         <!-- Plugin-related activities and services -->

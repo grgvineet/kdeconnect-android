@@ -20,6 +20,10 @@ import java.util.ArrayList;
 
 public class MprisPlugin extends Plugin {
 
+    public static final String PLUGIN_MPRIS_NAME = "plugin_mpris";
+    public static final String ACTION_PLAY_PAUSE = "PlayPause";
+    public static final String ACTION_NEXT = "Next";
+    public static final String ACTION_PREV = "Previous";
     private String currentSong = "";
     private int volume = 50;
     private Handler playerStatusUpdated = null;
@@ -36,7 +40,7 @@ public class MprisPlugin extends Plugin {
 
     @Override
     public String getPluginName() {
-        return "plugin_mpris";
+        return PLUGIN_MPRIS_NAME;
     }
 
     @Override
@@ -102,7 +106,8 @@ public class MprisPlugin extends Plugin {
                 playing = np.getBoolean("isPlaying", playing);
                 if (playerStatusUpdated != null) {
                     try {
-                        playerStatusUpdated.dispatchMessage(new Message());
+                        Message msg = new Message();
+                        playerStatusUpdated.dispatchMessage(msg);
                     } catch(Exception e) {
                         e.printStackTrace();
                         Log.e("MprisControl","Exception");
@@ -220,5 +225,9 @@ public class MprisPlugin extends Plugin {
             }
         });
         return b;
+    }
+
+    public String getPlayer() {
+        return player;
     }
 }
