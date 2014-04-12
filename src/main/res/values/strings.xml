@@ -63,5 +63,7 @@
     <string name="device_name">Device name</string>
     <string name="device_name_preference_summary">%s</string>
     <string name="invalid_device_name">Invalid device name</string>
+    <string name="pref_plugin_telepathy_desc">Sync your contacts with KDE Telepathy</string>
+    <string name="pref_plugin_telepathy">KDE Telepathy integration</string>
 
 </resources>
