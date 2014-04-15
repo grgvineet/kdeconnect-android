@@ -178,7 +178,7 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
 
         Notification notification = statusBarNotification.getNotification();
 
-         if ((notification.flags & Notification.FLAG_FOREGROUND_SERVICE) != 0
+        if ((notification.flags & Notification.FLAG_FOREGROUND_SERVICE) != 0
              || (notification.flags & Notification.FLAG_ONGOING_EVENT) != 0 ) {
             //This is not a notification!
             return;
@@ -265,7 +265,6 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
                         sendNotification(notification, true);
                     }
                 }
-
 
                 @Override
                 public void onServiceStart(final NotificationReceiver service) {
