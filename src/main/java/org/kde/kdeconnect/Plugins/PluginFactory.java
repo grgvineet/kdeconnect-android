@@ -14,6 +14,7 @@ import org.kde.kdeconnect.Plugins.MprisPlugin.MprisPlugin;
 import org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationsPlugin;
 import org.kde.kdeconnect.Plugins.PingPlugin.PingPlugin;
 import org.kde.kdeconnect.Plugins.SharePlugin.SharePlugin;
+import org.kde.kdeconnect.Plugins.TelepathyPlugin.TelepathyPlugin;
 import org.kde.kdeconnect.Plugins.TelephonyPlugin.TelephonyPlugin;
 
 import java.util.Map;
@@ -79,6 +80,7 @@ public class PluginFactory {
         PluginFactory.registerPlugin(NotificationsPlugin.class);
         PluginFactory.registerPlugin(MousePadPlugin.class);
         PluginFactory.registerPlugin(SharePlugin.class);
+        PluginFactory.registerPlugin(TelepathyPlugin.class);
     }
 
     public static PluginInfo getPluginInfo(Context context, String pluginName) {

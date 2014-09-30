@@ -89,6 +89,9 @@
     <string name="shareplugin_text_saved">Received text, saved to clipboard</string>
     <string name="share_notification_preference">Noisy notifications</string>
     <string name="share_notification_preference_summary">Vibrate and play a sound when receiving a file</string>
+    <string name="pref_plugin_telepathy_desc">Sync your contacts with KDE Telepathy</string>
+    <string name="pref_plugin_telepathy">KDE Telepathy integration</string>
+
 
     <string-array name="mpris_time_entries">
         <item>10 seconds</item>
