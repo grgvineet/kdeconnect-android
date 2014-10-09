@@ -89,7 +89,7 @@ public class TelepathyPlugin extends Plugin {
     public boolean onPackageReceived(NetworkPackage np) {
         if (!np.getType().equals(NetworkPackage.PACKAGE_TYPE_TELEPATHY)) return false;
 
-        Log.e("TelepathyPlugin",np.serialize());
+        Log.e("TelepathyPlugin", np.serialize());
 
         if (np.getBoolean("sendSms")) {
             String phoneNo = np.getString("receiver");
@@ -133,7 +133,7 @@ public class TelepathyPlugin extends Plugin {
                             if (fd != null) fd.close();
                         }
                     } while (cursor.moveToNext());
-                    Log.e("Contacts","Size: "+vCards.size());
+                    Log.e("Contacts", "Size: " + vCards.size());
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.e("RequestContacts", e.getMessage());
@@ -143,7 +143,7 @@ public class TelepathyPlugin extends Plugin {
             }
 
             NetworkPackage answer = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_TELEPATHY);
-            answer.set("contacts",vCards);
+            answer.set("contacts", vCards);
             device.sendPackage(answer);
 
         }
@@ -170,7 +170,7 @@ public class TelepathyPlugin extends Plugin {
                         String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                         numbers.add(number);
                     } while (cursor.moveToNext());
-                    Log.e("Numbers","Size: "+numbers.size());
+                    Log.e("Numbers", "Size: " + numbers.size());
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.e("RequestContacts", e.getMessage());
@@ -180,12 +180,12 @@ public class TelepathyPlugin extends Plugin {
             }
 
             NetworkPackage answer = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_TELEPATHY);
-            answer.set("numbers",numbers);
+            answer.set("numbers", numbers);
             device.sendPackage(answer);
 
         }
 
-        Log.e("TelepathyPlugin","Done");
+        Log.e("TelepathyPlugin", "Done");
 
         return true;
     }
@@ -195,28 +195,28 @@ public class TelepathyPlugin extends Plugin {
         if (hasPlugin) return null;
 
         return new AlertDialog.Builder(deviceActivity)
-            .setTitle("plugin needed")
-            .setMessage("Extra plugin needed for being able to send sms")
-            .setPositiveButton("Install", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    try {
-                        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pluginPackage)));
-                    } catch (android.content.ActivityNotFoundException anfe) {
-                        //TODO: Play store not installed open F-Droid website here instead
-                        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + pluginPackage)));
+                .setTitle("plugin needed")
+                .setMessage("Extra plugin needed for being able to send sms")
+                .setPositiveButton("Install", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pluginPackage)));
+                        } catch (android.content.ActivityNotFoundException anfe) {
+                            //TODO: Play store not installed open F-Droid website here instead
+                            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + pluginPackage)));
+                        }
+                        Intent intent = new Intent("");
+                        deviceActivity.startActivityForResult(intent, DeviceActivity.RESULT_NEEDS_RELOAD);
                     }
-                    Intent intent = new Intent("");
-                    deviceActivity.startActivityForResult(intent, DeviceActivity.RESULT_NEEDS_RELOAD);
-                }
-            })
-            .setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    //Do nothing
-                }
-            })
-            .create();
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //Do nothing
+                    }
+                })
+                .create();
 
     }
 
@@ -227,20 +227,21 @@ public class TelepathyPlugin extends Plugin {
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendSms("679282399", "Test!");
+                sendSms("11216116611", "Test!");
             }
         });
         return b;
     }
 
-    private void sendSms(String phoneNo, String sms) {
+    private void sendSms(String phone, String body) {
         if (!hasPlugin) Toast.makeText(context, "Plugin not installed!", Toast.LENGTH_LONG).show();
         Intent sendIntent = new Intent("org.kde.kdeconnect.ktp");
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.setPackage(pluginPackage);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, phoneNo + "\n" + sms);
+        sendIntent.putExtra("phone", phone);
+        sendIntent.putExtra("body", body);
         sendIntent.setType("kdeconnect/sms");
         sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(sendIntent);
+        context.sendBroadcast(sendIntent);
     }
 }
