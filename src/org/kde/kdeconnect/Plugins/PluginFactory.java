@@ -28,6 +28,7 @@ import android.util.Log;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.Plugins.BatteryPlugin.BatteryPlugin;
 import org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadPlugin;
+import org.kde.kdeconnect.Plugins.RunCommand.RunCommandPlugin;
 import org.kde.kdeconnect.Plugins.SftpPlugin.SftpPlugin;
 import org.kde.kdeconnect.Plugins.ClibpoardPlugin.ClipboardPlugin;
 import org.kde.kdeconnect.Plugins.MprisPlugin.MprisPlugin;
@@ -99,6 +100,7 @@ public class PluginFactory {
         PluginFactory.registerPlugin(NotificationsPlugin.class);
         PluginFactory.registerPlugin(MousePadPlugin.class);
         PluginFactory.registerPlugin(SharePlugin.class);
+        PluginFactory.registerPlugin(RunCommandPlugin.class);
     }
 
     public static PluginInfo getPluginInfo(Context context, String pluginName) {

@@ -147,6 +147,16 @@
 
         <activity
             android:theme="@style/Theme.AppCompat"
+            android:name="org.kde.kdeconnect.Plugins.RunCommand.RunCommandActivity"
+            android:label="@string/remote_control"
+            android:parentActivityName="org.kde.kdeconnect.UserInterface.DeviceActivity"
+            >
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.kde.kdeconnect.UserInterface.DeviceActivity" />
+        </activity>
+
+        <activity
+            android:theme="@style/Theme.AppCompat"
             android:name="org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadActivity"
             android:label="@string/remote_control"
             android:windowSoftInputMode="stateHidden|adjustResize"

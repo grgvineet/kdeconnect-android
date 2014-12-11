@@ -19,6 +19,8 @@
     <string name="pref_plugin_notifications_desc">Access your notifications from other devices</string>
     <string name="pref_plugin_sharereceiver">Share receiver</string>
     <string name="pref_plugin_sharereceiver_desc">Save incoming files to the phone storage</string>
+    <string name="pref_plugin_runcommand">Run commands</string>
+    <string name="pref_plugin_runcommand_desc">Execute commands remotely</string>
     <string name="plugin_not_available">This feature is not available in your Android version</string>
     <string name="device_list_empty">No devices</string>
     <string name="ok">OK</string>
