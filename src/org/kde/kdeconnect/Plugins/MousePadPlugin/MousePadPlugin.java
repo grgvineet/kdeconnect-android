@@ -25,6 +25,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 
@@ -142,16 +144,9 @@ public class MousePadPlugin extends Plugin {
         device.sendPackage(np);
     }
 
-    public void sendKey(String utfChar) {
-        NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_MOUSEPAD);
-        np.set("key", utfChar);
+    public void sendKeyboardPacket(NetworkPackage np) {
         device.sendPackage(np);
     }
 
-    public void sendSpecialKey(int specialKey) {
-        NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_MOUSEPAD);
-        np.set("specialKey", specialKey);
-        device.sendPackage(np);
-    }
 
 }

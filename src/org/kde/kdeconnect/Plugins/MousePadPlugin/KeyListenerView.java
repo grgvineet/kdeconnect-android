@@ -31,6 +31,7 @@ import android.view.inputmethod.InputConnection;
 
 import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect.Device;
+import org.kde.kdeconnect.NetworkPackage;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -57,6 +58,24 @@ public class KeyListenerView extends View  {
             SpecialKeysMap.put(KeyEvent.KEYCODE_NUMPAD_ENTER, ++i);     // 12
             SpecialKeysMap.put(KeyEvent.KEYCODE_FORWARD_DEL, ++i);      // 13
             SpecialKeysMap.put(KeyEvent.KEYCODE_ESCAPE, ++i);           // 14
+            ++i;           // 15
+            ++i;           // 16
+            ++i;           // 17
+            ++i;           // 18
+            ++i;           // 19
+            ++i;           // 20
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F1, ++i);           // 21
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F2, ++i);           // 22
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F3, ++i);           // 23
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F4, ++i);           // 24
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F5, ++i);           // 25
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F6, ++i);           // 26
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F7, ++i);           // 27
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F8, ++i);           // 28
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F9, ++i);           // 29
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F10, ++i);          // 30
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F11, ++i);          // 31
+            SpecialKeysMap.put(KeyEvent.KEYCODE_F12, ++i);          // 21
         }
     }
 
@@ -87,35 +106,42 @@ public class KeyListenerView extends View  {
 
         char utfChar = (char)event.getUnicodeChar();
         if (utfChar == 9 || utfChar == 10) utfChar = 0; //Workaround to send enter and tab as special keys instead of characters
+        //Log.e("KeyDown","keycode:"+keyCode);
+
+        final NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_MOUSEPAD);
 
         if (utfChar != 0) {
             final String utfString = new String(new char[]{utfChar});
-            BackgroundService.RunCommand(getContext(), new BackgroundService.InstanceCallback() {
-                @Override
-                public void onServiceStart(BackgroundService service) {
-                    Device device = service.getDevice(deviceId);
-                    MousePadPlugin mousePadPlugin = (MousePadPlugin)device.getPlugin("plugin_mousepad");
-                    if (mousePadPlugin == null) return;
-
-                    mousePadPlugin.sendKey(utfString);
-                }
-            });
+            //Log.e("KeyDown","utfString:"+utfString);
+            np.set("key", utfString);
         } else {
             if (!SpecialKeysMap.containsKey(keyCode)) {
                 return false;
             }
-
             final int specialKey = SpecialKeysMap.get(keyCode);
-            BackgroundService.RunCommand(getContext(), new BackgroundService.InstanceCallback() {
-                @Override
-                public void onServiceStart(BackgroundService service) {
-                    Device device = service.getDevice(deviceId);
-                    MousePadPlugin mousePadPlugin = (MousePadPlugin)device.getPlugin("plugin_mousepad");
-                    if (mousePadPlugin == null) return;
-                    mousePadPlugin.sendSpecialKey(specialKey);
-                }
-            });
+            np.set("specialKey", specialKey);
         }
+
+        if (event != null) {
+            if (event.isAltPressed()) {
+                np.set("alt", true);
+            }
+            if (Build.VERSION.SDK_INT >= 11) {
+                if (event.isCtrlPressed()) {
+                    np.set("ctrl", true);
+                }
+            }
+        }
+
+        BackgroundService.RunCommand(getContext(), new BackgroundService.InstanceCallback() {
+            @Override
+            public void onServiceStart(BackgroundService service) {
+                Device device = service.getDevice(deviceId);
+                MousePadPlugin mousePadPlugin = (MousePadPlugin) device.getPlugin("plugin_mousepad");
+                if (mousePadPlugin == null) return;
+                mousePadPlugin.sendKeyboardPacket(np);
+            }
+        });
 
         return true;
     }
