@@ -27,6 +27,7 @@ import android.util.Log;
 
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.Plugins.BatteryPlugin.BatteryPlugin;
+import org.kde.kdeconnect.Plugins.FindMyPhonePlugin.FindMyPhonePlugin;
 import org.kde.kdeconnect.Plugins.MousePadPlugin.MousePadPlugin;
 import org.kde.kdeconnect.Plugins.SftpPlugin.SftpPlugin;
 import org.kde.kdeconnect.Plugins.ClibpoardPlugin.ClipboardPlugin;
@@ -92,6 +93,7 @@ public class PluginFactory {
         //TODO: Use reflection to find all subclasses of Plugin, instead of adding them manually
         PluginFactory.registerPlugin(TelephonyPlugin.class);
         PluginFactory.registerPlugin(PingPlugin.class);
+        PluginFactory.registerPlugin(FindMyPhonePlugin.class);
         PluginFactory.registerPlugin(MprisPlugin.class);
         PluginFactory.registerPlugin(ClipboardPlugin.class);
         PluginFactory.registerPlugin(BatteryPlugin.class);

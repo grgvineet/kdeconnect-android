@@ -49,6 +49,7 @@ public class NetworkPackage {
     public final static String PACKAGE_TYPE_IDENTITY = "kdeconnect.identity";
     public final static String PACKAGE_TYPE_PAIR = "kdeconnect.pair";
     public final static String PACKAGE_TYPE_ENCRYPTED = "kdeconnect.encrypted";
+    public final static String PACKAGE_TYPE_FINDMYPHONE = "kdeconnect.findmyphone";
     public final static String PACKAGE_TYPE_PING = "kdeconnect.ping";
     public final static String PACKAGE_TYPE_TELEPHONY = "kdeconnect.telephony";
     public final static String PACKAGE_TYPE_BATTERY = "kdeconnect.battery";
