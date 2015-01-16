@@ -175,7 +175,7 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="org.kde.kdeconnect.Plugins.MprisPlugin.NotificationReturnSlot"></receiver>
+        <receiver android:name="org.kde.kdeconnect.Plugins.MprisPlugin.MusicControlReceiver"></receiver>
 
 
         <service android:name="org.kde.kdeconnect.Plugins.NotificationsPlugin.NotificationReceiver"
