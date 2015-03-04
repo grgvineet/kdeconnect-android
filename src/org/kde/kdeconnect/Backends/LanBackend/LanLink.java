@@ -30,6 +30,7 @@ import org.kde.kdeconnect.Backends.BaseLinkProvider;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,10 +38,23 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.NotYetConnectedException;
+import java.security.KeyStore;
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
+
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class LanLink extends BaseLink {
 
@@ -68,7 +82,7 @@ public class LanLink extends BaseLink {
         try {
 
             //Prepare socket for the payload
-            final ServerSocket server;
+            final SSLServerSocket server;
             if (np.hasPayload()) {
                 server = openTcpSocketOnFreePort();
                 JSONObject payloadTransferInfo = new JSONObject();
@@ -175,9 +189,46 @@ public class LanLink extends BaseLink {
         if (np.hasPayloadTransferInfo()) {
 
             try {
-                Socket socket = new Socket();
+
                 int tcpPort = np.getPayloadTransferInfo().getInt("port");
                 InetSocketAddress address = (InetSocketAddress)session.getRemoteAddress();
+
+                TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+//                    return null;
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                    }
+
+                }
+                };
+
+                SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, trustAllCerts, new java.security.SecureRandom());
+
+                SSLSocketFactory socketFactory = (SSLSocketFactory) context.getSocketFactory();
+                SSLSocket socket = (SSLSocket) socketFactory.createSocket();
+                System.out.println("here");
+                System.out.println("" + socket.getLocalAddress() + " " + socket.getLocalPort() );
+                System.out.println(""+ socket.getInetAddress() + " " + socket.getPort() );
+
+                socket.addHandshakeCompletedListener(new HandshakeCompletedListener(){
+
+                    @Override
+                    public void handshakeCompleted(HandshakeCompletedEvent hce) {
+                        System.out.println("Handshake completed");
+                    }
+
+                });
+
+//                Socket socket = new Socket();
                 socket.connect(new InetSocketAddress(address.getAddress(), tcpPort));
                 np.setPayload(socket.getInputStream(), np.getPayloadSize());
             } catch (Exception e) {
@@ -191,13 +242,25 @@ public class LanLink extends BaseLink {
     }
 
 
-    static ServerSocket openTcpSocketOnFreePort() throws IOException {
+    static SSLServerSocket openTcpSocketOnFreePort() throws Exception {
         boolean success = false;
         int tcpPort = 1739;
-        ServerSocket candidateServer = null;
+        String ksName = "kdeconnect.jks";
+        char[] ksPass = "kdeconnect".toCharArray();
+
+
+        SSLServerSocket candidateServer = null;
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(new FileInputStream(ksName), ksPass);
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+        keyManagerFactory.init(keyStore, ksPass);
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
+        SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) sslContext.getServerSocketFactory();
+
         while(!success) {
             try {
-                candidateServer = new ServerSocket();
+                candidateServer = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
                 candidateServer.bind(new InetSocketAddress(tcpPort));
                 success = true;
                 Log.i("LanLink", "Using port "+tcpPort);
