@@ -214,7 +214,7 @@ public class LanLink extends BaseLink {
                 context.init(null, trustAllCerts, new java.security.SecureRandom());
 
                 SSLSocketFactory socketFactory = (SSLSocketFactory) context.getSocketFactory();
-                SSLSocket socket = (SSLSocket) socketFactory.createSocket();
+                SSLSocket socket = (SSLSocket) socketFactory.createSocket(address.getAddress(),tcpPort);
                 System.out.println("here");
                 System.out.println("" + socket.getLocalAddress() + " " + socket.getLocalPort() );
                 System.out.println(""+ socket.getInetAddress() + " " + socket.getPort() );
@@ -228,8 +228,8 @@ public class LanLink extends BaseLink {
 
                 });
 
-//                Socket socket = new Socket();
-                socket.connect(new InetSocketAddress(address.getAddress(), tcpPort));
+//                Socket socket = new Socket();wi
+//                socket.connect(new InetSocketAddress(address.getAddress(), tcpPort));
                 np.setPayload(socket.getInputStream(), np.getPayloadSize());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -245,14 +245,14 @@ public class LanLink extends BaseLink {
     static SSLServerSocket openTcpSocketOnFreePort() throws Exception {
         boolean success = false;
         int tcpPort = 1739;
-        String ksName = "kdeconnect.jks";
+        String ksName = "/sdcard/kdeconnect.bks";
         char[] ksPass = "kdeconnect".toCharArray();
 
 
         SSLServerSocket candidateServer = null;
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(new FileInputStream(ksName), ksPass);
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, ksPass);
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
