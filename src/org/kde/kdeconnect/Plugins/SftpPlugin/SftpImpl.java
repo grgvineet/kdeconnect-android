@@ -104,7 +104,7 @@ class SimpleSftpServer {
 
     public void init(Context ctx, Device device) {
         passwordAuth.setUser(USER);
-        keyAuth.addKey(device.publicKey);
+//        keyAuth.addKey(device.publicKey);
         sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(ctx.getFilesDir() + "/sftpd.ser"));
 
         //sshd.setFileSystemFactory(new NativeFileSystemFactory());

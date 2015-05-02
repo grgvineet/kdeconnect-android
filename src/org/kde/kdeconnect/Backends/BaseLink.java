@@ -20,6 +20,8 @@
 
 package org.kde.kdeconnect.Backends;
 
+import android.content.Context;
+
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
@@ -30,12 +32,13 @@ import java.util.ArrayList;
 
 public abstract class BaseLink {
 
+    private final Context context;
     private final BaseLinkProvider linkProvider;
     private final String deviceId;
     private final ArrayList<PackageReceiver> receivers = new ArrayList<PackageReceiver>();
-    protected PrivateKey privateKey;
 
-    protected BaseLink(String deviceId, BaseLinkProvider linkProvider) {
+    protected BaseLink(Context context,String deviceId, BaseLinkProvider linkProvider) {
+        this.context = context;
         this.linkProvider = linkProvider;
         this.deviceId = deviceId;
     }
@@ -44,8 +47,8 @@ public abstract class BaseLink {
         return deviceId;
     }
 
-    public void setPrivateKey(PrivateKey key) {
-        privateKey = key;
+    public Context getContext() {
+        return context;
     }
 
     public BaseLinkProvider getLinkProvider() {
@@ -72,7 +75,8 @@ public abstract class BaseLink {
     }
 
     //TO OVERRIDE, should be sync
+    public abstract void initialiseLink();
     public abstract void sendPackage(NetworkPackage np,Device.SendPackageStatusCallback callback);
-    public abstract void sendPackageEncrypted(NetworkPackage np,Device.SendPackageStatusCallback callback, PublicKey key);
+    public abstract void sendPackageEncrypted(NetworkPackage np,Device.SendPackageStatusCallback callback);
 
 }

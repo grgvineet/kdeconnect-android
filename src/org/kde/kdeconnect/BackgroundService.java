@@ -34,6 +34,8 @@ import android.util.Log;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
 import org.kde.kdeconnect.Backends.LanBackend.LanLinkProvider;
+import org.kde.kdeconnect.Backends.LanBackend.LanPairingHandler;
+import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.UserInterface.MainSettingsActivity;
 
 import java.security.KeyPair;
@@ -50,7 +52,7 @@ public class BackgroundService extends Service {
 
     private final HashMap<String, Device> devices = new HashMap<String, Device>();
 
-    private final Device.PairingCallback devicePairingCallback = new Device.PairingCallback() {
+    private final PairingHandler.PairingCallback devicePairingCallback = new PairingHandler.PairingCallback() {
         @Override
         public void incomingRequest() {
             if (deviceListChangedCallback != null) deviceListChangedCallback.onDeviceListChanged();
@@ -114,6 +116,7 @@ public class BackgroundService extends Service {
             if (device != null) {
                 Log.i("KDE/BackgroundService", "addLink, known device: " + deviceId);
                 device.addLink(identityPackage, link);
+                link.initialiseLink();
             } else {
                 Log.i("KDE/BackgroundService", "addLink,unknown device: " + deviceId);
                 device = new Device(BackgroundService.this, identityPackage, link);

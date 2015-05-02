@@ -15,46 +15,50 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package org.kde.kdeconnect.Backends.LoopbackBackend;
 
 import android.content.Context;
 
-import org.kde.kdeconnect.Backends.BaseLinkProvider;
+import org.kde.kdeconnect.Backends.PairingHandler;
+import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
-public class LoopbackLinkProvider extends BaseLinkProvider {
+public class LoopbackPairingHandler extends PairingHandler {
 
-    private final Context context;
-
-    public LoopbackLinkProvider(Context context) {
-        this.context = context;
+    protected LoopbackPairingHandler(Context context, Device device) {
+        super(context, device);
     }
 
     @Override
-    public void onStart() {
-        onNetworkChange();
+    public void handlePairingPackage(NetworkPackage np) {
+
     }
 
     @Override
-    public void onStop() {
+    public void requestPairing() {
+
     }
 
     @Override
-    public void onNetworkChange() {
-        NetworkPackage np = NetworkPackage.createIdentityPackage(context);
-        connectionAccepted(np, new LoopbackLink(context, this));
+    public void unpair() {
+
     }
-/*
+
     @Override
-    public int getPriority() {
-        return 0;
+    public void pairingDone() {
+
     }
-*/
+
     @Override
-    public String getName() {
-        return "LoopbackLinkProvider";
+    public void acceptPairing() {
+
+    }
+
+    @Override
+    public void rejectPairing() {
+
     }
 }
