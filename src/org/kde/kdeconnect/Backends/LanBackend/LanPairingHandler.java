@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Albert Vaca Cintora <albertvaka@gmail.com>
+ * Copyright 2015 Vineet Garg <grgvineet@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -243,6 +243,7 @@ public class LanPairingHandler extends PairingHandler {
         //Store device information needed to create a Device object in a future
         SharedPreferences.Editor editor = context.getSharedPreferences(device.getDeviceId(), Context.MODE_PRIVATE).edit();
         editor.putString("deviceName", device.getName());
+        editor.putString("type", device.getType());
         String encodedPublicKey = Base64.encodeToString(publicKey.getEncoded(), 0);
         editor.putString("publicKey", encodedPublicKey);
         editor.apply();

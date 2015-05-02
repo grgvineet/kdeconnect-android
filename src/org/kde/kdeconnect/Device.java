@@ -59,6 +59,7 @@ public class Device implements BaseLink.PackageReceiver {
 
     private final String deviceId;
     private String name;
+    private String type;
 //    public PublicKey publicKey;
 
     private int protocolVersion;
@@ -72,11 +73,6 @@ public class Device implements BaseLink.PackageReceiver {
 
     private final SharedPreferences settings;
 
-    enum DeviceType {
-        Normal,
-        Ssl,
-        Bluetooth
-    }
 
     //Remembered trusted device, we need to wait for a incoming devicelink to communicate
     Device(Context context, String deviceId) {
@@ -87,11 +83,10 @@ public class Device implements BaseLink.PackageReceiver {
         this.context = context;
         this.deviceId = deviceId;
         this.name = settings.getString("deviceName", context.getString(R.string.unknown_device));
+        this.type = settings.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.Paired;
         this.protocolVersion = NetworkPackage.ProtocolVersion; //We don't know it yet
-
-        // refactor : set pairing handler forcefully
-        pairingHandler = new LanPairingHandler(context,this);
+        this.pairingHandler = getNewPairingHandler(type);
 
 //        try {
 //            byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
@@ -113,10 +108,11 @@ public class Device implements BaseLink.PackageReceiver {
         this.deviceId = np.getString("deviceId");
         this.name = np.getString("deviceName", context.getString(R.string.unknown_device));
         this.protocolVersion = np.getInt("protocolVersion");
+        this.type = np.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.NotPaired;
+        this.pairingHandler = getNewPairingHandler(type);
 //        this.publicKey = null;
 
-        pairingHandler = new LanPairingHandler(context,this);
         settings = context.getSharedPreferences(deviceId, Context.MODE_PRIVATE);
 
         addLink(np, dl);
@@ -128,6 +124,10 @@ public class Device implements BaseLink.PackageReceiver {
 
     public String getDeviceId() {
         return deviceId;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public PairingHandler.PairStatus getPairStatus() {
@@ -142,8 +142,20 @@ public class Device implements BaseLink.PackageReceiver {
         return pairingHandler;
     }
 
-    public void setPairingHandler(PairingHandler pairingHandler) {
-        this.pairingHandler = pairingHandler;
+    private PairingHandler getNewPairingHandler (String type) {
+        PairingHandler pairingHandler1;
+
+        if (type.equals("ssl")) {
+            // No ssl pairing handler yet, return Lan pairing handler
+            pairingHandler1 = new LanPairingHandler(context, this);
+        }else if (type.equals("bluetooth")) {
+            // No bluetooth pairing handler yet, returns Lan Pairing Handler
+            pairingHandler1 = new LanPairingHandler(context, this);
+        }else {
+            // By default returns Lan Pairing Handler
+            pairingHandler1 = new LanPairingHandler(context, this);
+        }
+        return pairingHandler1;
     }
 
     //Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer
@@ -180,10 +192,6 @@ public class Device implements BaseLink.PackageReceiver {
 
     public void unpair() {
         pairingHandler.unpair();
-    }
-
-    private void pairingDone() {
-        pairingHandler.pairingDone();
     }
 
     public void acceptPairing() {
@@ -243,7 +251,7 @@ public class Device implements BaseLink.PackageReceiver {
 
         link.removePackageReceiver(this);
         links.remove(link);
-        Log.i("KDE/Device","removeLink: "+link.getLinkProvider().getName() + " -> "+getName() + " active links: "+ links.size());
+        Log.i("KDE/Device", "removeLink: " + link.getLinkProvider().getName() + " -> " + getName() + " active links: " + links.size());
         if (links.isEmpty()) {
             reloadPluginsFromSettings();
         }

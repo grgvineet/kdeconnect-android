@@ -59,7 +59,7 @@ import javax.crypto.Cipher;
 public class LanLink extends BaseLink {
 
     private IoSession session = null;
-    PrivateKey privateKey; // private key of other device
+    PrivateKey privateKey; // my private key
     PublicKey publicKey; // public key of other device
 
     public void disconnect() {

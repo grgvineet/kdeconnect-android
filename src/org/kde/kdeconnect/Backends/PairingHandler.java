@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Albert Vaca Cintora <albertvaka@gmail.com>
+ * Copyright 2015 Vineet Garg <grgvineetka@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -70,7 +70,6 @@ public abstract  class PairingHandler {
     public abstract void handlePairingPackage(NetworkPackage np);
     public abstract void requestPairing();
     public abstract void unpair();
-    public abstract void pairingDone();
     public abstract void acceptPairing();
     public abstract void rejectPairing();
 }

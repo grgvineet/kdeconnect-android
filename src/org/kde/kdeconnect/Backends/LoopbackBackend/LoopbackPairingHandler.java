@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Albert Vaca Cintora <albertvaka@gmail.com>
+ * Copyright 2015 Vineet Garg <grgvineet@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,43 +22,15 @@ package org.kde.kdeconnect.Backends.LoopbackBackend;
 
 import android.content.Context;
 
+import org.kde.kdeconnect.Backends.LanBackend.LanPairingHandler;
 import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
-public class LoopbackPairingHandler extends PairingHandler {
+// using same pairing handler as of lan pairing handler
+public class LoopbackPairingHandler extends LanPairingHandler {
 
-    protected LoopbackPairingHandler(Context context, Device device) {
+    public LoopbackPairingHandler(Context context, Device device) {
         super(context, device);
-    }
-
-    @Override
-    public void handlePairingPackage(NetworkPackage np) {
-
-    }
-
-    @Override
-    public void requestPairing() {
-
-    }
-
-    @Override
-    public void unpair() {
-
-    }
-
-    @Override
-    public void pairingDone() {
-
-    }
-
-    @Override
-    public void acceptPairing() {
-
-    }
-
-    @Override
-    public void rejectPairing() {
-
     }
 }
