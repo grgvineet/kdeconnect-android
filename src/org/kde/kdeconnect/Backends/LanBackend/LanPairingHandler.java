@@ -40,7 +40,6 @@ import org.kde.kdeconnect_tp.R;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 

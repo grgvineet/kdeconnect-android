@@ -23,9 +23,7 @@ package org.kde.kdeconnect.Backends.LoopbackBackend;
 import android.content.Context;
 
 import org.kde.kdeconnect.Backends.LanBackend.LanPairingHandler;
-import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.Device;
-import org.kde.kdeconnect.NetworkPackage;
 
 // using same pairing handler as of lan pairing handler
 public class LoopbackPairingHandler extends LanPairingHandler {
