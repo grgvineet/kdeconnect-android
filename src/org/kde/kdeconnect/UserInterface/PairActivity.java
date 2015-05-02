@@ -29,6 +29,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect_tp.R;
@@ -38,7 +39,7 @@ public class PairActivity extends ActionBarActivity {
     private String deviceId;
     private Device device = null;
 
-    private final Device.PairingCallback pairingCallback = new Device.PairingCallback() {
+    private final PairingHandler.PairingCallback pairingCallback = new PairingHandler.PairingCallback() {
 
         @Override
         public void incomingRequest() {
@@ -52,7 +53,7 @@ public class PairActivity extends ActionBarActivity {
                 }
             });
             NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(device.getNotificationId());
+            notificationManager.cancel(device.getPairingHandler().getNotificationId());
         }
 
         @Override
@@ -99,7 +100,7 @@ public class PairActivity extends ActionBarActivity {
                 if (device == null) return;
                 setTitle(device.getName());
                 NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.cancel(device.getNotificationId());
+                notificationManager.cancel(device.getPairingHandler().getNotificationId());
             }
 
         });

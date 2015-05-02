@@ -37,6 +37,7 @@ import java.util.List;
 
 public class SftpPlugin extends Plugin {
 
+    // TODO : Change this plugin to work with new SSL Link, currently it uses device's public key which is not a part of device now
     private static final SimpleSftpServer server = new SimpleSftpServer();
 
     @Override

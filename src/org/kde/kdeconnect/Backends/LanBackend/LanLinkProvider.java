@@ -134,7 +134,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
                 //Log.i("KDE/LanLinkProvider", "Identity package received from " + np.getString("deviceName"));
 
-                LanLink link = new LanLink(session, np.getString("deviceId"), LanLinkProvider.this);
+                LanLink link = new LanLink(context, session, np.getString("deviceId"), LanLinkProvider.this);
                 nioSessions.put(session.getId(),link);
                 //Log.e("KDE/LanLinkProvider","nioSessions.size(): " + nioSessions.size());
                 addLink(np, link);
@@ -195,7 +195,7 @@ public class LanLinkProvider extends BaseLinkProvider {
                             final IoSession session = ioFuture.getSession();
                             Log.i("KDE/LanLinkProvider", "Connection successful: " + session.isConnected());
 
-                            final LanLink link = new LanLink(session, identityPackage.getString("deviceId"), LanLinkProvider.this);
+                            final LanLink link = new LanLink(context, session, identityPackage.getString("deviceId"), LanLinkProvider.this);
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
