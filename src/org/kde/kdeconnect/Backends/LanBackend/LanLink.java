@@ -33,6 +33,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
+import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
@@ -94,6 +95,11 @@ public class LanLink extends BaseLink {
             e.printStackTrace();
             Log.e("KDE/Device","Exception");
         }
+    }
+
+    @Override
+    public PairingHandler getNewPairingHandler(Device device) {
+        return new LanPairingHandler(getContext(), device);
     }
 
     //Blocking, do not call from main thread

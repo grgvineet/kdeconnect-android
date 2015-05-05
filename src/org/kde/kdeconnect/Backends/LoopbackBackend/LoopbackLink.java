@@ -30,6 +30,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
+import org.kde.kdeconnect.Backends.LanBackend.LanPairingHandler;
+import org.kde.kdeconnect.Backends.PairingHandler;
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPackage;
 
@@ -54,7 +56,7 @@ public class LoopbackLink extends BaseLink {
 
     @Override
     public void initialiseLink() {
-        // refactor : setting private key
+        // setting private key
         try {
             SharedPreferences globalSettings = PreferenceManager.getDefaultSharedPreferences(super.getContext());
             byte[] privateKeyBytes = Base64.decode(globalSettings.getString("privateKey", ""), 0);
@@ -64,7 +66,7 @@ public class LoopbackLink extends BaseLink {
             Log.e("KDE/Device", "Exception reading our own private key"); //Should not happen
         }
 
-        // refactor : setting public key
+        // setting public key
         try {
             SharedPreferences settings = super.getContext().getSharedPreferences(super.getDeviceId(), Context.MODE_PRIVATE);
             byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
@@ -74,6 +76,11 @@ public class LoopbackLink extends BaseLink {
             Log.e("KDE/Device","Exception");
         }
 
+    }
+
+    @Override
+    public PairingHandler getNewPairingHandler(Device device) {
+        return new LoopbackPairingHandler(getContext(), device);
     }
 
 

@@ -74,6 +74,7 @@ public abstract class BaseLink {
 
     //TO OVERRIDE, should be sync
     public abstract void initialiseLink();
+    public abstract PairingHandler getNewPairingHandler(Device device);
     public abstract void sendPackage(NetworkPackage np,Device.SendPackageStatusCallback callback);
     public abstract void sendPackageEncrypted(NetworkPackage np,Device.SendPackageStatusCallback callback);
 

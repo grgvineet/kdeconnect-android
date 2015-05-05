@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Base64;
 import android.util.Log;
 
 import org.kde.kdeconnect.Backends.BaseLink;
@@ -33,6 +34,9 @@ import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect.Plugins.PluginFactory;
 import org.kde.kdeconnect_tp.R;
 
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -44,7 +48,6 @@ public class Device implements BaseLink.PackageReceiver {
     private final String deviceId;
     private String name;
     private String type;
-//    public PublicKey publicKey;
 
     private int protocolVersion;
     private PairingHandler pairingHandler;
@@ -70,15 +73,6 @@ public class Device implements BaseLink.PackageReceiver {
         this.type = settings.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.Paired;
         this.protocolVersion = NetworkPackage.ProtocolVersion; //We don't know it yet
-        this.pairingHandler = getNewPairingHandler(type);
-
-//        try {
-//            byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
-//            publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyBytes));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            Log.e("KDE/Device","Exception");
-//        }
 
         reloadPluginsFromSettings();
     }
@@ -94,8 +88,6 @@ public class Device implements BaseLink.PackageReceiver {
         this.protocolVersion = np.getInt("protocolVersion");
         this.type = np.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.NotPaired;
-        this.pairingHandler = getNewPairingHandler(type);
-//        this.publicKey = null;
 
         settings = context.getSharedPreferences(deviceId, Context.MODE_PRIVATE);
 
@@ -126,20 +118,21 @@ public class Device implements BaseLink.PackageReceiver {
         return pairingHandler;
     }
 
-    private PairingHandler getNewPairingHandler (String type) {
-        PairingHandler pairingHandler1;
+    public void setPairingHandler(PairingHandler pairingHandler) {
+        this.pairingHandler = pairingHandler;
+    }
 
-        if (type.equals("ssl")) {
-            // No ssl pairing handler yet, return Lan pairing handler
-            pairingHandler1 = new LanPairingHandler(context, this);
-        }else if (type.equals("bluetooth")) {
-            // No bluetooth pairing handler yet, returns Lan Pairing Handler
-            pairingHandler1 = new LanPairingHandler(context, this);
-        }else {
-            // By default returns Lan Pairing Handler
-            pairingHandler1 = new LanPairingHandler(context, this);
+    public PublicKey getPublicKey() {
+        try {
+            SharedPreferences settings = context.getSharedPreferences(deviceId, Context.MODE_PRIVATE);
+            byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
+            PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+            return publicKey;
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("KDE/Device","Exception");
         }
-        return pairingHandler1;
+        return null;
     }
 
     //Returns 0 if the version matches, < 0 if it is older or > 0 if it is newer

@@ -123,6 +123,8 @@ public class BackgroundService extends Service {
                 device.addPairingCallback(devicePairingCallback);
             }
 
+            device.setPairingHandler(link.getNewPairingHandler(device));
+
             if (deviceListChangedCallback != null) deviceListChangedCallback.onDeviceListChanged();
         }
 
