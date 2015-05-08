@@ -209,8 +209,8 @@ public class SslLinkProvider extends BaseLinkProvider{
                 //TextLineCodecFactory will buffer incoming data and emit a message very time it finds a \n
                 TextLineCodecFactory textLineFactory = new TextLineCodecFactory(Charset.defaultCharset(), LineDelimiter.UNIX, LineDelimiter.UNIX);
                 textLineFactory.setDecoderMaxLineLength(512*1024); //Allow to receive up to 512kb of data
+                connector.getFilterChain().addLast("sslFilter", getSslFilter(true));
                 connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(textLineFactory));
-                connector.getFilterChain().addFirst("sslFilter", getSslFilter(true));
 
                 int tcpPort = identityPackage.getInt("tcpPort", port);
                 final ConnectFuture future = connector.connect(new InetSocketAddress(address.getAddress(), tcpPort));
@@ -355,8 +355,8 @@ public class SslLinkProvider extends BaseLinkProvider{
         //TextLineCodecFactory will buffer incoming data and emit a message very time it finds a \n
         TextLineCodecFactory textLineFactory = new TextLineCodecFactory(Charset.defaultCharset(), LineDelimiter.UNIX, LineDelimiter.UNIX);
         textLineFactory.setDecoderMaxLineLength(512*1024); //Allow to receive up to 512kb of data
+        tcpAcceptor.getFilterChain().addFirst("sslFilter", getSslFilter(false));
         tcpAcceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(textLineFactory));
-        tcpAcceptor.getFilterChain().addLast("sslFilter", getSslFilter(false));
 
 
         udpAcceptor = new NioDatagramAcceptor();
