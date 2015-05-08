@@ -31,15 +31,26 @@ import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
-import org.kde.kdeconnect.Backends.LanBackend.LanLinkProvider;
 import org.kde.kdeconnect.Backends.PairingHandler;
+import org.kde.kdeconnect.Backends.SslBackend.SslLinkProvider;
 import org.kde.kdeconnect.UserInterface.MainSettingsActivity;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -92,8 +103,12 @@ public class BackgroundService extends Service {
         //    linkProviders.add(new LoopbackLinkProvider(this));
         //}
 
-        if (settings.getBoolean("lan_link", true)) {
-            linkProviders.add(new LanLinkProvider(this));
+//        if (settings.getBoolean("lan_link", true)) {
+//            linkProviders.add(new LanLinkProvider(this));
+//        }
+
+        if (settings.getBoolean("ssl_link", true)) {
+            linkProviders.add(new SslLinkProvider(this));
         }
 
     }
@@ -115,7 +130,7 @@ public class BackgroundService extends Service {
             if (device != null) {
                 Log.i("KDE/BackgroundService", "addLink, known device: " + deviceId);
                 device.addLink(identityPackage, link);
-                link.initialiseLink();
+//                link.initialiseLink();
             } else {
                 Log.i("KDE/BackgroundService", "addLink,unknown device: " + deviceId);
                 device = new Device(BackgroundService.this, identityPackage, link);
@@ -240,6 +255,8 @@ public class BackgroundService extends Service {
             edit.putString("privateKey",Base64.encodeToString(privateKey, 0));
             edit.apply();
 
+            initializeCertificate(keyPair);
+
         }
 
 
@@ -269,6 +286,45 @@ public class BackgroundService extends Service {
         }
 */
 
+    }
+
+    public void initializeCertificate(KeyPair keyPair) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (!settings.contains("certificate")) {
+            try {
+
+                BouncyCastleProvider BC = new BouncyCastleProvider();
+
+                X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
+                nameBuilder.addRDN(BCStyle.CN, "vineet");
+                nameBuilder.addRDN(BCStyle.OU, "kdeconnect");
+                nameBuilder.addRDN(BCStyle.O, "kde");
+                Date notBefore = new Date(System.currentTimeMillis());
+                Date notAfter = new Date(System.currentTimeMillis() + System.currentTimeMillis());
+                X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(
+                        nameBuilder.build(),
+                        BigInteger.ONE,
+                        notBefore,
+                        notAfter,
+                        nameBuilder.build(),
+                        keyPair.getPublic()
+                );
+                ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider(BC).build(keyPair.getPrivate());
+                X509Certificate certificate = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certificateBuilder.build(contentSigner));
+
+                SharedPreferences.Editor edit = settings.edit();
+                edit.putString("certificate",Base64.encodeToString(certificate.getEncoded(), 0));
+                edit.apply();
+
+            } catch(Exception e) {
+                e.printStackTrace();
+                Log.e("KDE/initializeRsaKeys","Exception");
+                return;
+            }
+
+
+        }
     }
 
     @Override

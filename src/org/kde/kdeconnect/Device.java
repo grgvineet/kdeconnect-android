@@ -73,6 +73,7 @@ public class Device implements BaseLink.PackageReceiver {
         this.type = settings.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.Paired;
         this.protocolVersion = NetworkPackage.ProtocolVersion; //We don't know it yet
+        this.pairingHandler = new LanPairingHandler(context, this);
 
         reloadPluginsFromSettings();
     }
@@ -88,6 +89,7 @@ public class Device implements BaseLink.PackageReceiver {
         this.protocolVersion = np.getInt("protocolVersion");
         this.type = np.getString("type", "normal");
         this.pairStatus = PairingHandler.PairStatus.NotPaired;
+        this.pairingHandler = new LanPairingHandler(context, this);
 
         settings = context.getSharedPreferences(deviceId, Context.MODE_PRIVATE);
 
