@@ -208,8 +208,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
                 int tcpPort = identityPackage.getInt("tcpPort", port);
 
-//                final ConnectFuture future = connector.connect(new InetSocketAddress(address.getAddress(), tcpPort));
-                final ConnectFuture future = connector.connect(new InetSocketAddress("192.168.1.2", tcpPort));
+                final ConnectFuture future = connector.connect(new InetSocketAddress(address.getAddress(), tcpPort));
                 future.addListener(new IoFutureListener<IoFuture>() {
 
                     @Override
