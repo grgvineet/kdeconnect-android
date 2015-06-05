@@ -20,6 +20,7 @@
 
 package org.kde.kdeconnect.Backends.LanBackend;
 
+import android.content.Context;
 import android.util.Log;
 
 import org.apache.mina.core.future.WriteFuture;
@@ -28,6 +29,7 @@ import org.json.JSONObject;
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
 import org.kde.kdeconnect.Device;
+import org.kde.kdeconnect.Helpers.SecurityHelpers.RsaHelper;
 import org.kde.kdeconnect.NetworkPackage;
 
 import java.io.IOException;
@@ -38,13 +40,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.NotYetConnectedException;
 import java.security.PublicKey;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeoutException;
 
 public class LanLink extends BaseLink {
 
     private IoSession session = null;
+    private boolean onSsl = false;
 
     public void disconnect() {
         if (session == null) {
@@ -54,9 +54,13 @@ public class LanLink extends BaseLink {
         session.close(true);
     }
 
-    public LanLink(IoSession session, String deviceId, BaseLinkProvider linkProvider) {
-        super(deviceId, linkProvider);
+    public LanLink(Context context,IoSession session, String deviceId, BaseLinkProvider linkProvider) {
+        super(context,deviceId, linkProvider);
         this.session = session;
+    }
+
+    public void setOnSsl(boolean value){
+        this.onSsl = value;
     }
 
     //Blocking, do not call from main thread
@@ -70,6 +74,7 @@ public class LanLink extends BaseLink {
         try {
 
             //Prepare socket for the payload
+            // TODO : Change this to incorporate payload sending via ssl
             final ServerSocket server;
             if (np.hasPayload()) {
                 server = openTcpSocketOnFreePort();
@@ -82,7 +87,7 @@ public class LanLink extends BaseLink {
 
             //Encrypt if key provided
             if (key != null) {
-                np = np.encrypt(key);
+                np = RsaHelper.encrypt(np, key);
             }
 
             //Send body of the network package
@@ -95,6 +100,7 @@ public class LanLink extends BaseLink {
             }
 
             //Send payload
+            // TODO : Change this to incorporate payload sending via ssl
             if (server != null) {
                 OutputStream socket = null;
                 try {
@@ -151,7 +157,12 @@ public class LanLink extends BaseLink {
     //Blocking, do not call from main thread
     @Override
     public void sendPackageEncrypted(NetworkPackage np, Device.SendPackageStatusCallback callback, PublicKey key) {
-        sendPackageInternal(np, callback, key);
+        if (onSsl){
+            Log.e("KDE/LanLink", "Link is on ssl, not encrypting data");
+            sendPackageInternal(np, callback, null); // No need to encrypt if on ssl
+        }else {
+            sendPackageInternal(np, callback, key);
+        }
     }
 
     public void injectNetworkPackage(NetworkPackage np) {
@@ -159,7 +170,7 @@ public class LanLink extends BaseLink {
         if (np.getType().equals(NetworkPackage.PACKAGE_TYPE_ENCRYPTED)) {
 
             try {
-                np = np.decrypt(privateKey);
+                np = RsaHelper.decrypt(np, privateKey);
             } catch(Exception e) {
                 e.printStackTrace();
                 Log.e("KDE/onPackageReceived","Exception reading the key needed to decrypt the package");

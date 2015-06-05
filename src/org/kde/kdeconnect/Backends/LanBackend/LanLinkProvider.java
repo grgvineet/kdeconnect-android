@@ -34,11 +34,13 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.textline.LineDelimiter;
 import org.apache.mina.filter.codec.textline.TextLineCodecFactory;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.transport.socket.nio.NioDatagramAcceptor;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
 import org.kde.kdeconnect.Device;
+import org.kde.kdeconnect.Helpers.SecurityHelpers.SslHelper;
 import org.kde.kdeconnect.NetworkPackage;
 import org.kde.kdeconnect.UserInterface.CustomDevicesActivity;
 
@@ -123,6 +125,16 @@ public class LanLinkProvider extends BaseLinkProvider {
                 return;
             }
 
+            if ("startSsl".equals(theMessage)){
+                //Client
+                Log.e("KDE/LanLinkProvider", "Request to start ssl");
+                LanLink thisLink = nioSessions.get(session.getId());
+                SslFilter sslFilter = SslHelper.getTrustAllCertsFilter(context, SslHelper.SslMode.Client);
+                session.getFilterChain().addFirst("sslFilter", sslFilter);
+                thisLink.setOnSsl(true);
+                return;
+            }
+
             NetworkPackage np = NetworkPackage.unserialize(theMessage);
 
             if (np.getType().equals(NetworkPackage.PACKAGE_TYPE_IDENTITY)) {
@@ -134,10 +146,20 @@ public class LanLinkProvider extends BaseLinkProvider {
 
                 //Log.i("KDE/LanLinkProvider", "Identity package received from " + np.getString("deviceName"));
 
-                LanLink link = new LanLink(session, np.getString("deviceId"), LanLinkProvider.this);
+                LanLink link = new LanLink(context, session, np.getString("deviceId"), LanLinkProvider.this);
                 nioSessions.put(session.getId(),link);
                 //Log.e("KDE/LanLinkProvider","nioSessions.size(): " + nioSessions.size());
                 addLink(np, link);
+
+                if (np.getBoolean("sslSupported", false)){
+                    // Server
+                    Log.e("KDE/LanLinkProvider", "Remote device supports ssl, starting ssl");
+                    SslFilter filter = SslHelper.getSslFilter(context, np.getString("deviceId"), SslHelper.SslMode.Server);
+                    session.getFilterChain().addFirst("sslFilter", filter);
+                    session.setAttribute(SslFilter.DISABLE_ENCRYPTION_ONCE, Boolean.TRUE);
+                    session.write("startSsl");
+                    link.setOnSsl(true);
+                }
             } else {
                 LanLink prevLink = nioSessions.get(session.getId());
                 if (prevLink == null) {
@@ -185,7 +207,9 @@ public class LanLinkProvider extends BaseLinkProvider {
                 connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(textLineFactory));
 
                 int tcpPort = identityPackage.getInt("tcpPort", port);
-                final ConnectFuture future = connector.connect(new InetSocketAddress(address.getAddress(), tcpPort));
+
+//                final ConnectFuture future = connector.connect(new InetSocketAddress(address.getAddress(), tcpPort));
+                final ConnectFuture future = connector.connect(new InetSocketAddress("192.168.1.2", tcpPort));
                 future.addListener(new IoFutureListener<IoFuture>() {
 
                     @Override
@@ -195,7 +219,7 @@ public class LanLinkProvider extends BaseLinkProvider {
                             final IoSession session = ioFuture.getSession();
                             Log.i("KDE/LanLinkProvider", "Connection successful: " + session.isConnected());
 
-                            final LanLink link = new LanLink(session, identityPackage.getString("deviceId"), LanLinkProvider.this);
+                            final LanLink link = new LanLink(context,session, identityPackage.getString("deviceId"), LanLinkProvider.this);
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {

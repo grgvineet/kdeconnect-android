@@ -35,7 +35,11 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.kde.kdeconnect.Backends.BaseLink;
+import org.kde.kdeconnect.Helpers.SecurityHelpers.RsaHelper;
 import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect.Plugins.PluginFactory;
 import org.kde.kdeconnect.UserInterface.PairActivity;
@@ -44,6 +48,8 @@ import org.kde.kdeconnect_tp.R;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
@@ -59,6 +65,7 @@ public class Device implements BaseLink.PackageReceiver {
     private final String deviceId;
     private String name;
     public PublicKey publicKey;
+    public X509Certificate certificate;
     private int notificationId;
     private int protocolVersion;
 
@@ -120,8 +127,7 @@ public class Device implements BaseLink.PackageReceiver {
         this.deviceType = DeviceType.FromString(settings.getString("deviceType", "computer"));
 
         try {
-            byte[] publicKeyBytes = Base64.decode(settings.getString("publicKey", ""), 0);
-            publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+            publicKey = RsaHelper.getPublicKey(context, deviceId);
         } catch (Exception e) {
             e.printStackTrace();
             unpair();
@@ -268,6 +274,7 @@ public class Device implements BaseLink.PackageReceiver {
 
         SharedPreferences preferences = context.getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
         preferences.edit().remove(deviceId).apply();
+        // TODO : Delete shared preferences file too
 
         NetworkPackage np = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_PAIR);
         np.set("pair", false);
@@ -292,12 +299,20 @@ public class Device implements BaseLink.PackageReceiver {
         preferences.edit().putBoolean(deviceId,true).apply();
 
         //Store device information needed to create a Device object in a future
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("deviceName", getName());
-        editor.putString("deviceType", deviceType.toString());
-        String encodedPublicKey = Base64.encodeToString(publicKey.getEncoded(), 0);
-        editor.putString("publicKey", encodedPublicKey);
-        editor.apply();
+        try {
+            //Store device information needed to create a Device object in a future
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("deviceName", getName());
+            editor.putString("deviceType", deviceType.toString());
+            String encodedPublicKey = Base64.encodeToString(publicKey.getEncoded(), 0);
+            editor.putString("publicKey", encodedPublicKey);
+            String encodedCertificate = Base64.encodeToString(certificate.getEncoded(), 0);
+            editor.putString("certificate", encodedCertificate);
+            editor.apply();
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.e("KDE/Device", "Error saving certificate and public key");
+        }
 
         reloadPluginsFromSettings();
 
@@ -378,10 +393,7 @@ public class Device implements BaseLink.PackageReceiver {
         links.add(link);
 
         try {
-            SharedPreferences globalSettings = PreferenceManager.getDefaultSharedPreferences(context);
-            byte[] privateKeyBytes = Base64.decode(globalSettings.getString("privateKey", ""), 0);
-            PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
-            link.setPrivateKey(privateKey);
+            link.setPrivateKey(RsaHelper.getPrivateKey(context));
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("KDE/Device", "Exception reading our own private key"); //Should not happen
@@ -440,10 +452,15 @@ public class Device implements BaseLink.PackageReceiver {
             if (wantsPair) {
 
                 //Retrieve their public key
+                // TODO : Move to their respective helpers ?
                 try {
-                    String publicKeyContent = np.getString("publicKey").replace("-----BEGIN PUBLIC KEY-----\n","").replace("-----END PUBLIC KEY-----\n","");
+                    String publicKeyContent = np.getString("publicKey").replace("-----BEGIN PUBLIC KEY-----\n","").replace("-----END PUBLIC KEY-----\n", "");
                     byte[] publicKeyBytes = Base64.decode(publicKeyContent, 0);
                     publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+                    String certificateContent = np.getString("certificate").replace("-----BEGIN CERTIFICATE-----\n","").replace("-----END CERTIFICATE-----\n", "");
+                    byte[] certificateBytes = Base64.decode(certificateContent, 0);
+                    X509CertificateHolder certificateHolder = new X509CertificateHolder(certificateBytes);
+                    certificate = new JcaX509CertificateConverter().setProvider(new BouncyCastleProvider()).getCertificate(certificateHolder);
                 } catch(Exception e) {
                     e.printStackTrace();
                     Log.e("KDE/Device","Pairing exception: Received incorrect key");

@@ -87,18 +87,18 @@ public class NetworkPackage {
 
     //Most commons getters and setters defined for convenience
     public String getString(String key) { return mBody.optString(key,""); }
-    public String getString(String key, String defaultValue) { return mBody.optString(key,defaultValue); }
+    public String getString(String key, String defaultValue) { return mBody.optString(key, defaultValue); }
     public void set(String key, String value) { if (value == null) return; try { mBody.put(key,value); } catch(Exception e) { } }
-    public int getInt(String key) { return mBody.optInt(key,-1); }
-    public int getInt(String key, int defaultValue) { return mBody.optInt(key,defaultValue); }
+    public int getInt(String key) { return mBody.optInt(key, -1); }
+    public int getInt(String key, int defaultValue) { return mBody.optInt(key, defaultValue); }
     public long getLong(String key) { return mBody.optLong(key,-1); }
-    public long getLong(String key,long defaultValue) { return mBody.optLong(key,defaultValue); }
+    public long getLong(String key,long defaultValue) { return mBody.optLong(key, defaultValue); }
     public void set(String key, int value) { try { mBody.put(key,value); } catch(Exception e) { } }
     public boolean getBoolean(String key) { return mBody.optBoolean(key,false); }
-    public boolean getBoolean(String key, boolean defaultValue) { return mBody.optBoolean(key,defaultValue); }
+    public boolean getBoolean(String key, boolean defaultValue) { return mBody.optBoolean(key, defaultValue); }
     public void set(String key, boolean value) { try { mBody.put(key,value); } catch(Exception e) { } }
     public double getDouble(String key) { return mBody.optDouble(key,Double.NaN); }
-    public double getDouble(String key, double defaultValue) { return mBody.optDouble(key,defaultValue); }
+    public double getDouble(String key, double defaultValue) { return mBody.optDouble(key, defaultValue); }
     public void set(String key, double value) { try { mBody.put(key,value); } catch(Exception e) { } }
     public JSONArray getJSONArray(String key) { return mBody.optJSONArray(key); }
     public void set(String key, JSONArray value) { try { mBody.put(key,value); } catch(Exception e) { } }
@@ -189,55 +189,6 @@ public class NetworkPackage {
         return np;
     }
 
-    public NetworkPackage encrypt(PublicKey publicKey) throws GeneralSecurityException {
-
-        String serialized = serialize();
-
-        int chunkSize = 128;
-
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1PADDING");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-
-        JSONArray chunks = new JSONArray();
-        while (serialized.length() > 0) {
-            if (serialized.length() < chunkSize) {
-                chunkSize = serialized.length();
-            }
-            String chunk = serialized.substring(0, chunkSize);
-            serialized = serialized.substring(chunkSize);
-            byte[] chunkBytes = chunk.getBytes(Charset.defaultCharset());
-            byte[] encryptedChunk;
-            encryptedChunk = cipher.doFinal(chunkBytes);
-            chunks.put(Base64.encodeToString(encryptedChunk, Base64.NO_WRAP));
-        }
-
-        //Log.i("NetworkPackage", "Encrypted " + chunks.length()+" chunks");
-
-        NetworkPackage encrypted = new NetworkPackage(NetworkPackage.PACKAGE_TYPE_ENCRYPTED);
-        encrypted.set("data", chunks);
-        encrypted.setPayload(mPayload, mPayloadSize);
-        return encrypted;
-
-    }
-
-    public NetworkPackage decrypt(PrivateKey privateKey)  throws GeneralSecurityException, JSONException {
-
-        JSONArray chunks = mBody.getJSONArray("data");
-
-        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1PADDING");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-
-        String decryptedJson = "";
-        for (int i = 0; i < chunks.length(); i++) {
-            byte[] encryptedChunk = Base64.decode(chunks.getString(i), Base64.NO_WRAP);
-            String decryptedChunk = new String(cipher.doFinal(encryptedChunk));
-            decryptedJson += decryptedChunk;
-        }
-
-        NetworkPackage decrypted = unserialize(decryptedJson);
-        decrypted.setPayload(mPayload, mPayloadSize);
-        return decrypted;
-    }
 
     static public NetworkPackage createIdentityPackage(Context context) {
 
@@ -252,6 +203,7 @@ public class NetworkPackage {
                             DeviceHelper.getDeviceName()));
             np.mBody.put("protocolVersion", NetworkPackage.ProtocolVersion);
             np.mBody.put("deviceType", DeviceHelper.isTablet()? "tablet" : "phone");
+            np.mBody.put("sslSupported", true);
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("NetworkPacakge","Exception on createIdentityPackage");
@@ -271,6 +223,8 @@ public class NetworkPackage {
         SharedPreferences globalSettings = PreferenceManager.getDefaultSharedPreferences(context);
         String publicKey = "-----BEGIN PUBLIC KEY-----\n" + globalSettings.getString("publicKey", "").trim()+ "\n-----END PUBLIC KEY-----\n";
         np.set("publicKey", publicKey);
+        String certificate = "-----BEGIN CERTIFICATE-----\n" + globalSettings.getString("certificate", "").trim() + "\n-----END CERTIFICATE-----\n";
+        np.set("certificate", certificate);
 
         return np;
 
