@@ -32,6 +32,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.util.Log;
 
@@ -105,9 +106,9 @@ public class Device implements BaseLink.PackageReceiver {
     private ArrayList<PairingCallback> pairingCallback = new ArrayList<PairingCallback>();
     private Map<String, BasePairingHandler> pairingHandlers = new HashMap<String, BasePairingHandler>();
 
-    private final ArrayList<BaseLink> links = new ArrayList<BaseLink>();
-    private final HashMap<String, Plugin> plugins = new HashMap<String, Plugin>();
-    private final HashMap<String, Plugin> failedPlugins = new HashMap<String, Plugin>();
+    private final ArrayList<BaseLink> links = new ArrayList<>();
+    private final HashMap<String, Plugin> plugins = new HashMap<>();
+    private final HashMap<String, Plugin> failedPlugins = new HashMap<>();
 
     private final SharedPreferences settings;
 
@@ -160,11 +161,13 @@ public class Device implements BaseLink.PackageReceiver {
 
     public Drawable getIcon()
     {
+        int drawableId;
         switch (deviceType) {
-            case Phone: return context.getResources().getDrawable(R.drawable.ic_device_phone);
-            case Tablet: return context.getResources().getDrawable(R.drawable.ic_device_tablet);
-            default: return context.getResources().getDrawable(R.drawable.ic_device_laptop);
+            case Phone: drawableId = R.drawable.ic_device_phone; break;
+            case Tablet: drawableId = R.drawable.ic_device_tablet; break;
+            default: drawableId = R.drawable.ic_device_laptop;
         }
+        return ContextCompat.getDrawable(context, drawableId);
     }
 
     public DeviceType getDeviceType() {
@@ -531,13 +534,22 @@ public class Device implements BaseLink.PackageReceiver {
 
         } else {
 
-            Log.e("KDE/onPackageReceived","Device not paired, ignoring package!");
+            Log.e("KDE/onPackageReceived","Device not paired, will pass package to unpairedPackageListeners");
 
             // If it is pair package, it should be captured by "if" at start
             // If not and device is paired, it should be captured by isPaired
             // Else unpair, this handles the situation when one device unpairs, but other dont know like unpairing when wi-fi is off
 
             unpair();
+
+            for (Plugin plugin : unpairedPackageListeners) {
+                try {
+                    plugin.onUnpairedDevicePackageReceived(np);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.e("KDE/Device", "Exception in "+plugin.getDisplayName()+"'s onPackageReceived() in unPairedPackageListeners");
+                }
+            }
 
         }
 
@@ -589,7 +601,7 @@ public class Device implements BaseLink.PackageReceiver {
                 boolean useEncryption = (!np.getType().equals(NetworkPackage.PACKAGE_TYPE_PAIR) && isPaired());
 
                 //Make a copy to avoid concurrent modification exception if the original list changes
-                ArrayList<BaseLink> mLinks = new ArrayList<BaseLink>(links);
+                ArrayList<BaseLink> mLinks = new ArrayList<>(links);
                 for (final BaseLink link : mLinks) {
                     if (link == null) continue; //Since we made a copy, maybe somebody destroyed the link in the meanwhile
                     if (useEncryption) {
@@ -644,7 +656,7 @@ public class Device implements BaseLink.PackageReceiver {
         final Plugin plugin = PluginFactory.instantiatePluginForDevice(context, pluginKey, this);
         if (plugin == null) {
             Log.e("KDE/addPlugin","could not instantiate plugin: "+pluginKey);
-            failedPlugins.put(pluginKey, plugin);
+            failedPlugins.put(pluginKey, null);
             return;
         }
 
@@ -699,6 +711,10 @@ public class Device implements BaseLink.PackageReceiver {
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("KDE/removePlugin","Exception calling onDestroy for plugin "+pluginKey);
+        }
+
+        if (unpairedPackageListeners.contains(plugin)) {
+            unpairedPackageListeners.remove(plugin);
         }
 
         for (PluginsChangedListener listener : pluginsChangedListeners) {
@@ -757,7 +773,7 @@ public class Device implements BaseLink.PackageReceiver {
         void onPluginsChanged(Device device);
     }
 
-    private final ArrayList<PluginsChangedListener> pluginsChangedListeners = new ArrayList<PluginsChangedListener>();
+    private final ArrayList<PluginsChangedListener> pluginsChangedListeners = new ArrayList<>();
 
     public void addPluginsChangedListener(PluginsChangedListener listener) {
         pluginsChangedListeners.add(listener);
@@ -765,6 +781,13 @@ public class Device implements BaseLink.PackageReceiver {
 
     public void removePluginsChangedListener(PluginsChangedListener listener) {
         pluginsChangedListeners.remove(listener);
+    }
+
+    private final ArrayList<Plugin> unpairedPackageListeners = new ArrayList<>();
+
+    public void registerUnpairedPackageListener(Plugin p) {
+        Log.e("KDE/registerUnpairedPackageListener", p.getPluginKey() + " plugin registered to receive package from unpaired device");
+        unpairedPackageListeners.add(p);
     }
 
 }

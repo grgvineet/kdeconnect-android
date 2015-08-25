@@ -462,7 +462,7 @@ public class LanLinkProvider extends BaseLinkProvider {
 
                 String deviceListPrefs = PreferenceManager.getDefaultSharedPreferences(context).getString(
                         KEY_CUSTOM_DEVLIST_PREFERENCE, "");
-                ArrayList<String> iplist = new ArrayList<String>();
+                ArrayList<String> iplist = new ArrayList<>();
                 if (!deviceListPrefs.isEmpty()) {
                     iplist = CustomDevicesActivity.deserializeIpList(deviceListPrefs);
                 }

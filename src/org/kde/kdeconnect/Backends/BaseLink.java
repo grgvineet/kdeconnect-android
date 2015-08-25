@@ -35,7 +35,7 @@ public abstract class BaseLink {
     protected final Context context;
     private final BaseLinkProvider linkProvider;
     private final String deviceId;
-    private final ArrayList<PackageReceiver> receivers = new ArrayList<PackageReceiver>();
+    private final ArrayList<PackageReceiver> receivers = new ArrayList<>();
     protected PrivateKey privateKey;
 
     protected BaseLink(Context context,String deviceId, BaseLinkProvider linkProvider) {
@@ -62,7 +62,7 @@ public abstract class BaseLink {
 
 
     public interface PackageReceiver {
-        public void onPackageReceived(NetworkPackage np);
+        void onPackageReceived(NetworkPackage np);
     }
 
     public void addPackageReceiver(PackageReceiver pr) {
